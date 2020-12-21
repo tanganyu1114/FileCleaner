@@ -28,13 +28,13 @@ func RemoveFile() {
 			defer wg.Done()
 			if len(files) > 1 {
 				for _, file := range files[1:] {
-					fmt.Printf("Remove the File hash: %s", hash)
-					fmt.Printf("List the Remove file :")
+					fmt.Printf("Remove the File hash: %s\n", hash)
+					fmt.Printf("List the Remove file:\n")
 					err := os.Remove(file)
 					if err != nil {
-						fmt.Printf("remove file: %s ERROR : %s", file, err.Error())
+						fmt.Printf("ERROR: Remove File: %s  : %s\n", file, err.Error())
 					} else {
-						fmt.Printf("RM: %s", file)
+						fmt.Printf("ReMove: %s\n", file)
 					}
 				}
 			}
@@ -55,14 +55,14 @@ func CreateLink() {
 		go func(hash string, files []string) {
 			defer wg.Done()
 			if len(files) > 1 {
-				fmt.Printf("Remove the File hash: %s\n", hash)
-				fmt.Printf("List the Remove file :\n")
+				fmt.Printf("Create the File Link hash: %s\n", hash)
+				fmt.Printf("List the Create file:\n")
 				for _, file := range files[1:] {
 					err := os.Link(files[0], file)
 					if err != nil {
-						fmt.Printf("remove file: %s ERROR : %s\n", file, err.Error())
+						fmt.Printf("ERROR: Create File Link: %s  : %s\n", file, err.Error())
 					} else {
-						fmt.Printf("RM: %s\n", file)
+						fmt.Printf("Link: %s\n", file)
 					}
 				}
 			}
