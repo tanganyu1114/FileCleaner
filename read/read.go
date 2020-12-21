@@ -36,7 +36,11 @@ func Read(basePath string, casCade bool) {
 				fmt.Printf("read file err, file name :%s, err: %s", file, err.Error())
 			}
 			md5str := FileHash(data)
-			model.FileMap[md5str] = append(model.FileMap[md5str], file)
+			if CheckFileMap(md5str) {
+				model.FileMap[md5str] = append(model.FileMap[md5str], file)
+			} else {
+				model.FileMap[md5str] = []string{file}
+			}
 			<-model.ReadCH
 		}(file)
 	}
@@ -64,4 +68,9 @@ func FileHash(data []byte) string {
 	m := md5.New()
 	m.Write(data)
 	return hex.EncodeToString(m.Sum(nil))
+}
+
+func CheckFileMap(md5 string) bool {
+	_, ok := model.FileMap[md5]
+	return ok
 }
