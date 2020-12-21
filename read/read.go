@@ -79,9 +79,6 @@ func Read(basePath string, casCade bool) {
 			return
 		}
 	}
-
-	// 所有文件读取完毕后，发送消息给写进程
-	// model.SignalCH <- true
 }
 
 func ReadDir(dir string) {

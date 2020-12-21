@@ -10,8 +10,6 @@ import (
 // 在这个包主要操作文件，删除文件创建ln
 
 func Write(dm string) {
-	// 写阻塞，等待读取完毕
-	// <-model.SignalCH
 	// 删除文件
 	RemoveFile()
 	if dm == "ln" {
@@ -27,9 +25,9 @@ func RemoveFile() {
 		go func(hash string, files []string) {
 			defer wg.Done()
 			if len(files) > 1 {
+				fmt.Printf("Remove the File hash: %s\n", hash)
+				fmt.Printf("List the Remove file:\n")
 				for _, file := range files[1:] {
-					fmt.Printf("Remove the File hash: %s\n", hash)
-					fmt.Printf("List the Remove file:\n")
 					err := os.Remove(file)
 					if err != nil {
 						fmt.Printf("ERROR: Remove File: %s  : %s\n", file, err.Error())
