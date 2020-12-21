@@ -14,11 +14,12 @@ func Init() {
 	flag.StringVar(&basePath, "p", "/home/fastdfs/storage/data", "Plz enter an absolute path")
 	flag.BoolVar(&casCade, "c", false, "Is  the cascade dir file, default false")
 	flag.StringVar(&delMethod, "dm", "ln", "Plz Usage 'rm' or 'ln'; rm: remove the file ,ln: remove and link the file")
+	flag.Parse()
 }
 
 func main() {
 	Init()
-	flag.Parse()
+	go read.Record()
 	read.Read(basePath, casCade)
 	write.Write(delMethod)
 }

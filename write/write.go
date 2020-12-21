@@ -11,7 +11,7 @@ import (
 
 func Write(dm string) {
 	// 写阻塞，等待读取完毕
-	<-model.SignalCH
+	// <-model.SignalCH
 	// 删除文件
 	RemoveFile()
 	if dm == "ln" {
@@ -42,29 +42,33 @@ func RemoveFile() {
 		}(hash, files)
 	}
 	wg.Wait()
+	// 关闭写限制channel
+	close(model.WriteCH)
 }
 
 func CreateLink() {
+	LinkCH := make(chan int, 10)
 	wg := sync.WaitGroup{}
 	for hash, files := range model.FileMap {
 		wg.Add(1)
-		model.WriteCH <- 1
+		LinkCH <- 1
 		go func(hash string, files []string) {
 			defer wg.Done()
 			if len(files) > 1 {
+				fmt.Printf("Remove the File hash: %s\n", hash)
+				fmt.Printf("List the Remove file :\n")
 				for _, file := range files[1:] {
-					fmt.Printf("Remove the File hash: %s", hash)
-					fmt.Printf("List the Remove file :")
 					err := os.Link(files[0], file)
 					if err != nil {
-						fmt.Printf("remove file: %s ERROR : %s", file, err.Error())
+						fmt.Printf("remove file: %s ERROR : %s\n", file, err.Error())
 					} else {
-						fmt.Printf("RM: %s", file)
+						fmt.Printf("RM: %s\n", file)
 					}
 				}
 			}
-			<-model.WriteCH
+			<-LinkCH
 		}(hash, files)
 	}
 	wg.Wait()
+	close(LinkCH)
 }

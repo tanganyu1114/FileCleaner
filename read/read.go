@@ -9,6 +9,26 @@ import (
 	"sync"
 )
 
+// 后台记录记录文件信息
+func Record() {
+	for {
+		select {
+		case record := <-model.RecordCH:
+			for k, v := range record {
+				if CheckFileMap(k) {
+					model.FileMap[k] = append(model.FileMap[k], v)
+				} else {
+					model.FileMap[k] = []string{v}
+				}
+			}
+		// 接收退出信息
+		case <-model.SignalCH:
+			return
+		}
+
+	}
+}
+
 // 读进程获取文件信息
 func Read(basePath string, casCade bool) {
 	if casCade {
@@ -36,18 +56,32 @@ func Read(basePath string, casCade bool) {
 				fmt.Printf("read file err, file name :%s, err: %s", file, err.Error())
 			}
 			md5str := FileHash(data)
-			if CheckFileMap(md5str) {
-				model.FileMap[md5str] = append(model.FileMap[md5str], file)
-			} else {
-				model.FileMap[md5str] = []string{file}
+			//if CheckFileMap(md5str) {
+			//	model.FileMap[md5str] = append(model.FileMap[md5str], file)
+			//} else {
+			//	model.FileMap[md5str] = []string{file}
+			//}
+			record := map[string]string{
+				md5str: file,
 			}
+			model.RecordCH <- record
 			<-model.ReadCH
 		}(file)
 	}
 	wg.Wait()
+	// 关闭读文件限制通道
+	close(model.ReadCH)
+	// 阻塞，等待record处理完成数据，发送信息退出record goroutine
+	for {
+		if len(model.RecordCH) == 0 {
+			close(model.RecordCH)
+			model.SignalCH <- true
+			return
+		}
+	}
 
 	// 所有文件读取完毕后，发送消息给写进程
-	model.SignalCH <- true
+	// model.SignalCH <- true
 }
 
 func ReadDir(dir string) {
