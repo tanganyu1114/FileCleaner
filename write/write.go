@@ -54,6 +54,7 @@ func CreateLink() {
 			defer wg.Done()
 			if len(files) > 1 {
 				fmt.Printf("Create the File Link hash: %s\n", hash)
+				fmt.Printf("Source File: %s\n", files[0])
 				fmt.Printf("List the Create file:\n")
 				for _, file := range files[1:] {
 					err := os.Link(files[0], file)
