@@ -14,6 +14,8 @@ func Write(dm string) {
 	RemoveFile()
 	if dm == "ln" {
 		CreateLink()
+	} else {
+		close(model.LinkCH)
 	}
 }
 
@@ -24,6 +26,9 @@ func RemoveFile() {
 		model.WriteCH <- 1
 		go func(hash string, files []string) {
 			defer wg.Done()
+			defer func() {
+				<-model.WriteCH
+			}()
 			if len(files) > 1 {
 				fmt.Printf("Remove the File hash: %s\n", hash)
 				fmt.Printf("List the Remove file:\n")
@@ -36,7 +41,7 @@ func RemoveFile() {
 					}
 				}
 			}
-			<-model.WriteCH
+
 		}(hash, files)
 	}
 	wg.Wait()
@@ -45,11 +50,10 @@ func RemoveFile() {
 }
 
 func CreateLink() {
-	LinkCH := make(chan int, 10)
 	wg := sync.WaitGroup{}
 	for hash, files := range model.FileMap {
 		wg.Add(1)
-		LinkCH <- 1
+		model.LinkCH <- 1
 		go func(hash string, files []string) {
 			defer wg.Done()
 			if len(files) > 1 {
@@ -65,9 +69,9 @@ func CreateLink() {
 					}
 				}
 			}
-			<-LinkCH
+			<-model.LinkCH
 		}(hash, files)
 	}
 	wg.Wait()
-	close(LinkCH)
+	close(model.LinkCH)
 }

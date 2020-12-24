@@ -14,6 +14,8 @@ func Record() {
 	for {
 		select {
 		case record := <-model.RecordCH:
+			// 每读取一次，正确数+1
+			model.Res.ReadFileOK += 1
 			for k, v := range record {
 				if CheckFileMap(k) {
 					model.FileMap[k] = append(model.FileMap[k], v)
@@ -37,11 +39,15 @@ func Read(basePath string, casCade bool) {
 		fileinfo, err := ioutil.ReadDir(basePath)
 		if err != nil {
 			fmt.Printf("read file path err, file path %s, err : %s", basePath, err.Error())
+			model.Res.ReadPathERR += 1
+		} else {
+			model.Res.ReadPathOK += 1
 		}
 		for _, file := range fileinfo {
 			if file.IsDir() {
 				continue
 			}
+			model.Res.TotalSize += file.Size()
 			model.Files = append(model.Files, basePath+"/"+file.Name())
 		}
 	}
@@ -51,21 +57,19 @@ func Read(basePath string, casCade bool) {
 		model.ReadCH <- 1
 		go func(file string) {
 			defer wg.Done()
+			defer func() {
+				<-model.ReadCH
+			}()
 			data, err := ioutil.ReadFile(file)
 			if err != nil {
-				fmt.Printf("read file err, file name :%s, err: %s", file, err.Error())
+				fmt.Printf("Read file err, file name :%s, err: %s", file, err.Error())
+				return
 			}
 			md5str := FileHash(data)
-			//if CheckFileMap(md5str) {
-			//	model.FileMap[md5str] = append(model.FileMap[md5str], file)
-			//} else {
-			//	model.FileMap[md5str] = []string{file}
-			//}
 			record := map[string]string{
 				md5str: file,
 			}
 			model.RecordCH <- record
-			<-model.ReadCH
 		}(file)
 	}
 	wg.Wait()
@@ -85,11 +89,15 @@ func ReadDir(dir string) {
 	fileinfo, err := ioutil.ReadDir(dir)
 	if err != nil {
 		fmt.Printf("read file path err, file path %s, err : %s", dir, err.Error())
+		model.Res.ReadPathERR += 1
+	} else {
+		model.Res.ReadPathOK += 1
 	}
 	for _, file := range fileinfo {
 		if file.IsDir() {
 			ReadDir(dir + "/" + file.Name())
 		} else {
+			model.Res.TotalSize += file.Size()
 			model.Files = append(model.Files, dir+"/"+file.Name())
 		}
 	}
