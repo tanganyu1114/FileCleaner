@@ -6,110 +6,99 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"sync"
+	"time"
 )
 
-// 后台记录记录文件信息
-func Record() {
-	for {
-		select {
-		case record := <-model.RecordCH:
-			// 每读取一次，正确数+1
-			model.Res.ReadFileOK += 1
-			for k, v := range record {
-				if CheckFileMap(k) {
-					model.FileMap[k] = append(model.FileMap[k], v)
-				} else {
-					model.FileMap[k] = []string{v}
-				}
-			}
-		// 接收退出信息
-		case <-model.SignalCH:
-			return
-		}
-
-	}
-}
+// 纯文件信息
+var files []string
 
 // 读进程获取文件信息
 func Read(basePath string, casCade bool) {
+	// 单线程处理读目录信息
 	if casCade {
-		ReadDir(basePath)
+		readDirMulti(basePath)
 	} else {
-		fileinfo, err := ioutil.ReadDir(basePath)
-		if err != nil {
-			fmt.Printf("read file path err, file path %s, err : %s", basePath, err.Error())
-			model.Res.ReadPathERR += 1
-		} else {
-			model.Res.ReadPathOK += 1
-		}
-		for _, file := range fileinfo {
-			if file.IsDir() {
-				continue
-			}
-			model.Res.TotalSize += file.Size()
-			model.Files = append(model.Files, basePath+"/"+file.Name())
-		}
+		readDirSingle(basePath)
 	}
+	// goroutine 并发处理文件
 	wg := sync.WaitGroup{}
-	for _, file := range model.Files {
+	for _, file := range files {
 		wg.Add(1)
-		model.ReadCH <- 1
+		model.ControlCH <- 1
 		go func(file string) {
 			defer wg.Done()
 			defer func() {
-				<-model.ReadCH
+				<-model.ControlCH
 			}()
+			var (
+				stat   = true
+				md5str string
+			)
 			data, err := ioutil.ReadFile(file)
 			if err != nil {
+				stat = false
 				fmt.Printf("Read file err, file name :%s, err: %s", file, err.Error())
-				return
+			} else {
+				md5str = fileHash(data)
 			}
-			md5str := FileHash(data)
-			record := map[string]string{
-				md5str: file,
-			}
-			model.RecordCH <- record
+			rd := model.NewRead(stat, md5str, file, len(data))
+			model.RecordCH <- rd
 		}(file)
 	}
 	wg.Wait()
-	// 关闭读文件限制通道
-	close(model.ReadCH)
-	// 阻塞，等待record处理完成数据，发送信息退出record goroutine
+	// 阻塞，等待record处理完成数据
+	fmt.Printf("Wait the record to statistics the infomation .")
 	for {
 		if len(model.RecordCH) == 0 {
-			close(model.RecordCH)
-			model.SignalCH <- true
+			fmt.Printf("\nRecord Read file info Complete\n")
 			return
 		}
+		fmt.Printf(".")
+		time.Sleep(time.Second)
 	}
 }
 
-func ReadDir(dir string) {
+// 级联读取目录文件信息
+func readDirMulti(dir string) {
+	var stat = true
 	fileinfo, err := ioutil.ReadDir(dir)
 	if err != nil {
-		fmt.Printf("read file path err, file path %s, err : %s", dir, err.Error())
-		model.Res.ReadPathERR += 1
-	} else {
-		model.Res.ReadPathOK += 1
+		stat = false
+		fmt.Printf("Read file path err, file path %s, err : %s", dir, err.Error())
 	}
+	rd := model.NewPath(stat, dir)
+	model.RecordCH <- rd
 	for _, file := range fileinfo {
 		if file.IsDir() {
-			ReadDir(dir + "/" + file.Name())
+			readDirMulti(filepath.Join(dir, file.Name()))
 		} else {
-			model.Res.TotalSize += file.Size()
-			model.Files = append(model.Files, dir+"/"+file.Name())
+			files = append(files, filepath.Join(dir, file.Name()))
 		}
 	}
 }
 
-func FileHash(data []byte) string {
+// 只读单个目录，非级联读取
+func readDirSingle(dir string) {
+	var stat = true
+	fileinfo, err := ioutil.ReadDir(dir)
+	if err != nil {
+		stat = false
+		fmt.Printf("Read file path err, file path %s, err : %s", dir, err.Error())
+	}
+	rd := model.NewPath(stat, dir)
+	model.RecordCH <- rd
+	for _, file := range fileinfo {
+		if file.IsDir() {
+			continue
+		}
+		files = append(files, filepath.Join(dir, file.Name()))
+	}
+}
+
+func fileHash(data []byte) string {
 	m := md5.New()
 	m.Write(data)
 	return hex.EncodeToString(m.Sum(nil))
-}
-
-func CheckFileMap(md5 string) bool {
-	_, ok := model.FileMap[md5]
-	return ok
 }

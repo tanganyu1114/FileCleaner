@@ -1,7 +1,6 @@
 package read
 
 import (
-	"FileCleaner/model"
 	"testing"
 )
 
@@ -11,7 +10,4 @@ func TestReadDir(t *testing.T) {
 			t.Log(err)
 		}
 		t.Log("path:",path)*/
-	path := "E:\\Golang\\src\\FileCleaner\\testDir"
-	ReadDir(path)
-	t.Log("files:", model.Files)
 }
