@@ -18,7 +18,7 @@ var parallel int
 func Init() {
 	flag.StringVar(&basePath, "p", "/home/fastdfs/storage/data", "Plz enter an absolute path")
 	flag.BoolVar(&casCade, "c", false, "Cascade control the dir, default false")
-	flag.IntVar(&parallel, "l", 4, "The number of parallel control, default 4")
+	flag.IntVar(&parallel, "n", 4, "The number of parallel control, default 4")
 	flag.StringVar(&delMethod, "dm", "ln", "Plz Usage 'rm' or 'ln'; rm: remove the file ,ln: remove and link the file")
 	flag.Parse()
 }
