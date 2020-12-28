@@ -7,8 +7,6 @@ var (
 	ControlCH = make(chan int, 10)
 	// 通道传递信息到record协程
 	RecordCH = make(chan Record, 10)
-	/*	// 读写取数通道,写入2次，删除/Link各取一次
-		HashMapCH = make(chan map[string][]string,1)*/
 	// 记录文件hash值的map
 	FileMap = make(map[string][]string)
 	// 记录文件大小

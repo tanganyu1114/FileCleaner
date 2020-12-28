@@ -15,7 +15,11 @@ func Write(dm string) {
 	if dm == "ln" {
 		CreateLink()
 	}
+	// 退出协程 关闭通道
 	model.SignalCH <- true
+	close(model.SignalCH)
+	close(model.RecordCH)
+	close(model.ControlCH)
 }
 
 func RemoveFile() {
