@@ -43,8 +43,9 @@ type writeRes struct {
 }
 
 type linkRes struct {
-	ErrNum int
-	ErrMap map[string][]string // 源文件  目标文件
+	TotalNum int
+	ErrNum   int
+	ErrMap   map[string][]string // 源文件  目标文件
 }
 
 type Record interface {
@@ -135,11 +136,11 @@ type link struct {
 }
 
 func (l link) Record(res *Result) {
+	res.Link.TotalNum += 1
 	if !l.stat {
 		res.Link.ErrNum += 1
 		res.Link.ErrMap[l.src] = append(res.Link.ErrMap[l.src], l.dist)
 	}
-
 }
 
 func NewLink(stat bool, src, dist string) *link {

@@ -6,7 +6,6 @@ import (
 	"FileCleaner/record"
 	"FileCleaner/write"
 	"flag"
-	"fmt"
 	"time"
 )
 
@@ -35,6 +34,7 @@ func main() {
 	read.Read(basePath, casCade)
 	// 写文件
 	write.Write(delMethod)
-	// 累积耗时
-	fmt.Printf("本次去重总共耗时: %s\n", time.Since(startTime).String())
+	// 输出统计结果信息
+	record.Report(startTime)
+
 }

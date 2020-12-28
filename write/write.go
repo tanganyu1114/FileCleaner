@@ -14,9 +14,8 @@ func Write(dm string) {
 	RemoveFile()
 	if dm == "ln" {
 		CreateLink()
-	} else {
-		close(model.ControlCH)
 	}
+	model.SignalCH <- true
 }
 
 func RemoveFile() {
