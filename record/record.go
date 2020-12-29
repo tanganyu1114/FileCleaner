@@ -26,8 +26,8 @@ func Report(t time.Time) {
 	totalSize := fmt.Sprintf("%.2f GB", float64(result.Read.TotalSize)/1024/1024/1024)
 	removeSize := fmt.Sprintf("%.2f GB", float64(result.Write.TotalSize)/1024/1024/1024)
 	saveSize := fmt.Sprintf("%.2f GB", float64(result.Read.TotalSize-result.Write.TotalSize)/1024/1024/1024)
-	numPct := fmt.Sprintf("%.2f %%", float64(result.Write.TotalNum)/float64(result.Read.TotalNum))
-	sizePct := fmt.Sprintf("%.2f %%", float64(result.Write.TotalSize)/float64(result.Read.TotalSize))
+	numPct := fmt.Sprintf("%.2f %%", float64(result.Write.TotalNum)/float64(result.Read.TotalNum)*100)
+	sizePct := fmt.Sprintf("%.2f %%", float64(result.Write.TotalSize)/float64(result.Read.TotalSize)*100)
 	// 输出结果
 	fmt.Printf(`
 本次操作总计耗时: %s

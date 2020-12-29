@@ -39,7 +39,7 @@ func Read(basePath string, casCade bool) {
 			data, err := ioutil.ReadFile(file)
 			if err != nil {
 				stat = false
-				fmt.Printf("Read file err, file name :%s, err: %s", file, err.Error())
+				fmt.Printf("[ERROR]: Read file err, file name :%s, err: %s", file, err.Error())
 			} else {
 				md5str = fileHash(data)
 			}
@@ -49,10 +49,10 @@ func Read(basePath string, casCade bool) {
 	}
 	wg.Wait()
 	// 阻塞，等待record处理完成数据
-	fmt.Printf("Wait the record to statistics the infomation .")
+	fmt.Printf("[INFO]: Wait the record to statistics the infomation .")
 	for {
 		if len(model.RecordCH) == 0 {
-			fmt.Printf("\nRecord Read file info Complete\n")
+			fmt.Printf("\n[INFO]: Record Read file info Complete\n")
 			return
 		}
 		fmt.Printf(".")
@@ -66,7 +66,7 @@ func readDirMulti(dir string) {
 	fileinfo, err := ioutil.ReadDir(dir)
 	if err != nil {
 		stat = false
-		fmt.Printf("Read file path err, file path %s, err : %s", dir, err.Error())
+		fmt.Printf("[ERROR]: Read file path err, file path %s, err : %s", dir, err.Error())
 	}
 	rd := model.NewPath(stat, dir)
 	model.RecordCH <- rd
@@ -85,7 +85,7 @@ func readDirSingle(dir string) {
 	fileinfo, err := ioutil.ReadDir(dir)
 	if err != nil {
 		stat = false
-		fmt.Printf("Read file path err, file path %s, err : %s", dir, err.Error())
+		fmt.Printf("[ERROR]: Read file path err, file path %s, err : %s", dir, err.Error())
 	}
 	rd := model.NewPath(stat, dir)
 	model.RecordCH <- rd
