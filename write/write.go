@@ -40,19 +40,19 @@ func Write(dm string) {
 func dryRunFile() {
 	wg := sync.WaitGroup{}
 	for hash, files := range model.FileMap {
-		wg.Add(1)
-		model.ControlCH <- 1
-		go func(hash string, files []string) {
-			defer wg.Done()
-			defer func() { <-model.ControlCH }()
-			if len(files) > 1 {
-				for _, file := range files[1:] {
+		if len(files) > 1 {
+			for _, file := range files[1:] {
+				wg.Add(1)
+				model.ControlCH <- 1
+				go func(hash string, file string) {
+					defer wg.Done()
+					defer func() { <-model.ControlCH }()
 					fmt.Printf("[INFO]: Duplicate File: %s\n", file)
 					rd := model.NewWrite(true, hash, file, model.FileSize[hash])
 					model.RecordCH <- rd
-				}
+				}(hash, file)
 			}
-		}(hash, files)
+		}
 	}
 	wg.Wait()
 }
@@ -60,13 +60,13 @@ func dryRunFile() {
 func removeFile() {
 	wg := sync.WaitGroup{}
 	for hash, files := range model.FileMap {
-		wg.Add(1)
-		model.ControlCH <- 1
-		go func(hash string, files []string) {
-			defer wg.Done()
-			defer func() { <-model.ControlCH }()
-			if len(files) > 1 {
-				for _, file := range files[1:] {
+		if len(files) > 1 {
+			for _, file := range files[1:] {
+				wg.Add(1)
+				model.ControlCH <- 1
+				go func(hash string, file string) {
+					defer wg.Done()
+					defer func() { <-model.ControlCH }()
 					var stat = true
 					err := os.Remove(file)
 					if err != nil {
@@ -77,10 +77,9 @@ func removeFile() {
 					}
 					rd := model.NewWrite(stat, hash, file, model.FileSize[hash])
 					model.RecordCH <- rd
-				}
+				}(hash, file)
 			}
-
-		}(hash, files)
+		}
 	}
 	wg.Wait()
 }
@@ -88,13 +87,14 @@ func removeFile() {
 func linkFile() {
 	wg := sync.WaitGroup{}
 	for hash, files := range model.FileMap {
-		wg.Add(1)
-		model.ControlCH <- 1
-		go func(hash string, files []string) {
-			defer wg.Done()
-			defer func() { <-model.ControlCH }()
-			if len(files) > 1 {
-				for _, file := range files[1:] {
+		if len(files) > 1 {
+			for _, file := range files[1:] {
+				wg.Add(1)
+				model.ControlCH <- 1
+				go func(hash string, file string) {
+					defer wg.Done()
+					defer func() { <-model.ControlCH }()
+
 					var stat = true
 					err := os.Link(files[0], file)
 					if err != nil {
@@ -105,9 +105,10 @@ func linkFile() {
 					}
 					rd := model.NewLink(stat, files[0], file)
 					model.RecordCH <- rd
-				}
+
+				}(hash, file)
 			}
-		}(hash, files)
+		}
 	}
 	wg.Wait()
 }
