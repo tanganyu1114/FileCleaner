@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 )
 
 // 在这个包主要操作文件，删除文件创建ln
@@ -15,8 +16,17 @@ func Write(dm string) {
 	if dm == "ln" {
 		CreateLink()
 	}
-	// 退出协程 关闭通道
-	model.SignalCH <- true
+	// 等待record记录完成 退出协程 关闭通道
+	fmt.Printf("[INFO]: Wait to record the write infomation .")
+	for {
+		if len(model.RecordCH) == 0 {
+			fmt.Printf("\n[INFO]: Record write file info Complete\n")
+			model.SignalCH <- true
+			break
+		}
+		fmt.Printf(".")
+		time.Sleep(time.Second)
+	}
 	close(model.SignalCH)
 	close(model.RecordCH)
 	close(model.ControlCH)

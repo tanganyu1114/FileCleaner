@@ -49,11 +49,11 @@ func Read(basePath string, casCade bool) {
 	}
 	wg.Wait()
 	// 阻塞，等待record处理完成数据
-	fmt.Printf("[INFO]: Wait the record to statistics the infomation .")
+	fmt.Printf("[INFO]: Wait to record the read infomation .")
 	for {
 		if len(model.RecordCH) == 0 {
 			fmt.Printf("\n[INFO]: Record Read file info Complete\n")
-			return
+			break
 		}
 		fmt.Printf(".")
 		time.Sleep(time.Second)
