@@ -18,4 +18,5 @@
 ```
 > filecleaner -c=true -p="/home/data"
 ```
+![执行结果](https://github.com/tanganyu1114/FileCleaner/blob/master/picture/result.jpg)
 
