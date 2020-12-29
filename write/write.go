@@ -31,8 +31,6 @@ func RemoveFile() {
 			defer wg.Done()
 			defer func() { <-model.ControlCH }()
 			if len(files) > 1 {
-				fmt.Printf("[INFO]: Remove the File hash: %s\n", hash)
-				fmt.Printf("[INFO]: List the Remove file:\n")
 				for _, file := range files[1:] {
 					var stat = true
 					err := os.Remove(file)
@@ -40,7 +38,7 @@ func RemoveFile() {
 						fmt.Printf("[ERROR]: Remove File: %s  : %s\n", file, err.Error())
 						stat = false
 					} else {
-						fmt.Printf("[INFO]: ReMove: %s\n", file)
+						fmt.Printf("[INFO]: Remove File: %s\n", file)
 					}
 					rd := model.NewWrite(stat, hash, file, model.FileSize[hash])
 					model.RecordCH <- rd
@@ -61,17 +59,14 @@ func CreateLink() {
 			defer wg.Done()
 			defer func() { <-model.ControlCH }()
 			if len(files) > 1 {
-				fmt.Printf("[INFO]: Create the File Link hash: %s\n", hash)
-				fmt.Printf("[INFO]: Source File: %s\n", files[0])
-				fmt.Printf("[INFO]: List the Create file:\n")
 				for _, file := range files[1:] {
 					var stat = true
 					err := os.Link(files[0], file)
 					if err != nil {
 						stat = false
-						fmt.Printf("[ERROR]: Create File Link: %s  : %s\n", file, err.Error())
+						fmt.Printf("[ERROR]: Create File Link: %s  : %s, Source File: %s\n", file, err.Error(), files[0])
 					} else {
-						fmt.Printf("[INFO]: LINK %s\n", file)
+						fmt.Printf("[INFO]: Create File Link %s\n", file)
 					}
 					rd := model.NewLink(stat, files[0], file)
 					model.RecordCH <- rd
