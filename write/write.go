@@ -11,10 +11,15 @@ import (
 // 在这个包主要操作文件，删除文件创建ln
 
 func Write(dm string) {
-	// 删除文件
-	RemoveFile()
-	if dm == "ln" {
-		CreateLink()
+	// 判断文件处理模式
+	switch dm {
+	case "dry":
+		dryRunFile()
+	case "rm":
+		removeFile()
+	case "ln":
+		removeFile()
+		linkFile()
 	}
 	// 等待record记录完成 退出协程 关闭通道
 	fmt.Printf("[INFO]: Wait to record the write infomation .")
@@ -32,7 +37,27 @@ func Write(dm string) {
 	close(model.ControlCH)
 }
 
-func RemoveFile() {
+func dryRunFile() {
+	wg := sync.WaitGroup{}
+	for hash, files := range model.FileMap {
+		wg.Add(1)
+		model.ControlCH <- 1
+		go func(hash string, files []string) {
+			defer wg.Done()
+			defer func() { <-model.ControlCH }()
+			if len(files) > 1 {
+				for _, file := range files[1:] {
+					fmt.Printf("[INFO]: Duplicate File: %s\n", file)
+					rd := model.NewWrite(true, hash, file, model.FileSize[hash])
+					model.RecordCH <- rd
+				}
+			}
+		}(hash, files)
+	}
+	wg.Wait()
+}
+
+func removeFile() {
 	wg := sync.WaitGroup{}
 	for hash, files := range model.FileMap {
 		wg.Add(1)
@@ -60,7 +85,7 @@ func RemoveFile() {
 	wg.Wait()
 }
 
-func CreateLink() {
+func linkFile() {
 	wg := sync.WaitGroup{}
 	for hash, files := range model.FileMap {
 		wg.Add(1)
