@@ -32,5 +32,5 @@
 # 只模拟查看清理效果，不实际删除文件
 > filecleaner -c=true -p="/home/data" -dm="dry"
 ```
-![执行结果](https://github.com/tanganyu1114/FileCleaner/blob/master/picture/result.jpg)
+![执行结果](https://gitee.com/cosNeaby/FileCleaner/blob/master/picture/result.jpg)
 
