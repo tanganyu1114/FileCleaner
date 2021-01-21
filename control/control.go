@@ -1,8 +1,10 @@
 package control
 
-import "FileCleaner/model"
+import (
+	"FileCleaner/model"
+)
 
-func Control(control int) {
+func CtlParallel(control int) {
 	if control <= 0 || control > 10 {
 		panic("[ERROR]: The number of parallel control must between 1 and 10 !")
 	}

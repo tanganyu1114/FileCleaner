@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
+	"syscall"
 	"testing"
+	"time"
 )
 
 func TestReadDir(t *testing.T) {
@@ -19,7 +22,11 @@ func TestReadDir(t *testing.T) {
 		t.Log(err)
 	}
 	for _, file := range fileinfo {
-		fmt.Println("name:", file.Name(), "mode:", file.Mode(), "sys:", file.Sys())
+		fmt.Println("name:", file.Name(), "mode:", file.Mode(), "sys:", file.Sys(), "modetime", file.ModTime())
+		stat_t := file.Sys().(*syscall.Win32FileAttributeData)
+		time.Now().Unix()
+		fmt.Println("ctime", time.Unix(stat_t.CreationTime.Nanoseconds()/1e9, 0))
+		fmt.Println(stat_t.CreationTime.Nanoseconds() / 1e9)
 		if !file.IsDir() {
 			data, err := ioutil.ReadFile(filepath.Join(dir, file.Name()))
 			if err != nil {
@@ -31,7 +38,17 @@ func TestReadDir(t *testing.T) {
 }
 
 func TestEchoFloat(t *testing.T) {
-	fmt.Printf("aaaaaaaaaaaaa\taaaaaa\taaaa\t\n")
-	fmt.Printf("bbbb\tbbbb\tbbbbbbbbbbbbbbbbbbb\t\n")
-	fmt.Printf("c\tcc\tccc\t\n")
+	ss := "abcd"
+	fmt.Println(ss[0:1])
+	day := "1"
+	iday, err := strconv.Atoi(day)
+	if err != nil {
+		fmt.Println("err", err)
+	}
+	fmt.Println(iday)
+	fmt.Println(time.Now().Unix())
+	fmt.Println(time.Now().AddDate(0, 0, -1).Unix())
+	fmt.Println(time.Now().AddDate(0, 0, -2).Unix())
+	fmt.Println(time.Now().AddDate(0, 0, -1).Unix() - time.Now().AddDate(0, 0, -2).Unix())
+	fmt.Println(time.Now().Unix() - time.Now().Unix()%86400)
 }
