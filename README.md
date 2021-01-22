@@ -19,7 +19,7 @@
 > -t string  时间点，例如:
         +n  n+1天前
          n  n+1天前到n天前的时间段
-        -n  n天前至今           
+        -n  n天前至今  
 ```
 * 示例  
 ```
@@ -27,7 +27,7 @@
 > filecleaner -c=true -p="/home/data"
 
 # 按文件创建时间清理，清理10天前的
-> filecleaner -c=true -p="/home/data" -ctime -t=+10
+> filecleaner -c=true -p="/home/data" -ctime -t=+9
 
 # 只模拟查看清理效果，不实际删除文件
 > filecleaner -c=true -p="/home/data" -dm="dry"
@@ -35,12 +35,17 @@
 * 执行结果展示
 ![执行结果](https://gitee.com/cosNeaby/FileCleaner/raw/master/picture/result.jpg)
 
+* github 仓库地址：
+https://github.com/tanganyu1114/FileCleaner
+* gitee 仓库地址：
+https://gitee.com/cosNeaby/FileCleaner
+
 
 * LICENSE 
 ```
 MIT License
 
-Copyright (c) 2021 沧海cos泪
+Copyright (c) 2021 tanganyu
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
