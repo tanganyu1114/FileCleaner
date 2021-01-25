@@ -1,5 +1,7 @@
 package model
 
+import "sync"
+
 var (
 	// 读取文件完成的信号
 	SignalCH = make(chan bool, 0)
@@ -71,14 +73,16 @@ func NewPath(stat bool, dir string) *path {
 }
 
 type read struct {
+	wg   *sync.WaitGroup
 	stat bool
 	hash string
 	file string
 	size int
 }
 
-func NewRead(stat bool, hash string, file string, size int) *read {
+func NewRead(wg *sync.WaitGroup, stat bool, hash string, file string, size int) *read {
 	return &read{
+		wg:   wg,
 		stat: stat,
 		hash: hash,
 		file: file,
@@ -87,6 +91,7 @@ func NewRead(stat bool, hash string, file string, size int) *read {
 }
 
 func (r read) Record(res *Result) {
+	defer r.wg.Done()
 	res.Read.TotalNum += 1
 	res.Read.TotalSize += r.size
 	if r.stat {
@@ -101,14 +106,16 @@ func (r read) Record(res *Result) {
 }
 
 type write struct {
+	wg   *sync.WaitGroup
 	stat bool
 	hash string
 	file string
 	size int
 }
 
-func NewWrite(stat bool, hash string, file string, size int) *write {
+func NewWrite(wg *sync.WaitGroup, stat bool, hash string, file string, size int) *write {
 	return &write{
+		wg:   wg,
 		stat: stat,
 		hash: hash,
 		file: file,
@@ -117,6 +124,7 @@ func NewWrite(stat bool, hash string, file string, size int) *write {
 }
 
 func (w write) Record(res *Result) {
+	defer w.wg.Done()
 	res.Write.TotalNum += 1
 	if w.stat {
 		res.Write.TotalSize += w.size
@@ -128,12 +136,14 @@ func (w write) Record(res *Result) {
 }
 
 type link struct {
+	wg   *sync.WaitGroup
 	stat bool
 	src  string
 	dist string
 }
 
 func (l link) Record(res *Result) {
+	defer l.wg.Done()
 	res.Link.TotalNum += 1
 	if !l.stat {
 		res.Link.ErrNum += 1
@@ -141,8 +151,9 @@ func (l link) Record(res *Result) {
 	}
 }
 
-func NewLink(stat bool, src, dist string) *link {
+func NewLink(wg *sync.WaitGroup, stat bool, src, dist string) *link {
 	return &link{
+		wg:   wg,
 		stat: stat,
 		src:  src,
 		dist: dist,

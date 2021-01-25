@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 // 纯文件信息
@@ -16,6 +15,7 @@ var files []string
 
 // 读进程获取文件信息
 func Read(basePath string, casCade bool) {
+	fmt.Printf("[INFO]: Read File Begin ...\n")
 	// 单线程处理读目录信息
 	if casCade {
 		readDirMulti(basePath)
@@ -24,6 +24,7 @@ func Read(basePath string, casCade bool) {
 	}
 	// 处理文件信息
 	handleFile()
+	fmt.Printf("[INFO]: Read File Complete !\n")
 }
 
 // 级联读取目录文件信息
@@ -100,7 +101,7 @@ func handleFile() {
 		wg.Add(1)
 		model.ControlCH <- 1
 		go func(file string) {
-			defer wg.Done()
+			// defer wg.Done()
 			defer func() {
 				<-model.ControlCH
 			}()
@@ -115,19 +116,20 @@ func handleFile() {
 			} else {
 				md5str = fileHash(data)
 			}
-			rd := model.NewRead(stat, md5str, file, len(data))
+			// wg.Done 放到goroutine 协程中处理，每写完一个数据，done一个
+			rd := model.NewRead(&wg, stat, md5str, file, len(data))
 			model.RecordCH <- rd
 		}(file)
 	}
-	wg.Wait()
 	// 阻塞，等待record处理完成数据
-	fmt.Printf("[INFO]: Wait to record the read infomation .")
-	for {
-		if len(model.RecordCH) == 0 {
-			fmt.Printf("\n[INFO]: Record Read file info Complete\n")
-			break
-		}
-		fmt.Printf(".")
-		time.Sleep(time.Second)
-	}
+	wg.Wait()
+	/*	fmt.Printf("[INFO]: Wait to record the read infomation .")
+		for {
+			if len(model.RecordCH) == 0 {
+				fmt.Printf("\n[INFO]: Record Read file info Complete\n")
+				break
+			}
+			fmt.Printf(".")
+			time.Sleep(time.Second)
+		}*/
 }
