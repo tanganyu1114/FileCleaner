@@ -20,17 +20,6 @@ func Write(dm string) {
 		removeFile()
 		linkFile()
 	}
-	// 等待record记录完成 退出协程 关闭通道
-	/*	fmt.Printf("[INFO]: Wait to record the write infomation .")
-		for {
-			if len(model.RecordCH) == 0 {
-				fmt.Printf("\n[INFO]: Record write file info Complete\n")
-				model.SignalCH <- true
-				break
-			}
-			fmt.Printf(".")
-			time.Sleep(time.Second)
-		}*/
 	// 退出记录goroutine
 	model.SignalCH <- true
 	// 关闭通道
@@ -51,6 +40,7 @@ func dryRunFile() {
 					// defer wg.Done()
 					defer func() { <-model.ControlCH }()
 					fmt.Printf("[INFO]: Duplicate File: %s\n", file)
+					// wg.Done 放到goroutine 协程中处理，每写完一个数据，done一个
 					rd := model.NewWrite(&wg, true, hash, file, model.FileSize[hash])
 					model.RecordCH <- rd
 				}(hash, file)
@@ -80,6 +70,7 @@ func removeFile() {
 					} else {
 						fmt.Printf("[INFO]: Remove File: %s\n", file)
 					}
+					// wg.Done 放到goroutine 协程中处理，每写完一个数据，done一个
 					rd := model.NewWrite(&wg, stat, hash, file, model.FileSize[hash])
 					model.RecordCH <- rd
 				}(hash, file)
@@ -110,6 +101,7 @@ func linkFile() {
 					} else {
 						fmt.Printf("[INFO]: Create File Link %s\n", file)
 					}
+					// wg.Done 放到goroutine 协程中处理，每写完一个数据，done一个
 					rd := model.NewLink(&wg, stat, files[0], file)
 					model.RecordCH <- rd
 

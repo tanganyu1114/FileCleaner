@@ -123,13 +123,4 @@ func handleFile() {
 	}
 	// 阻塞，等待record处理完成数据
 	wg.Wait()
-	/*	fmt.Printf("[INFO]: Wait to record the read infomation .")
-		for {
-			if len(model.RecordCH) == 0 {
-				fmt.Printf("\n[INFO]: Record Read file info Complete\n")
-				break
-			}
-			fmt.Printf(".")
-			time.Sleep(time.Second)
-		}*/
 }
