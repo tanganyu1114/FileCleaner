@@ -31,6 +31,9 @@ func Write(dm string) {
 			fmt.Printf(".")
 			time.Sleep(time.Second)
 		}*/
+	// 退出记录goroutine
+	model.SignalCH <- true
+	// 关闭通道
 	close(model.SignalCH)
 	close(model.RecordCH)
 	close(model.ControlCH)
